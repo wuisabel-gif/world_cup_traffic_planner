@@ -36,10 +36,6 @@ open index.html
 
 Hosting it? GitHub Pages serves `index.html` automatically — push it, flip on Pages in your repo settings, done.
 
-## Under the hood
-
-Pure vanilla JS, Leaflet for the map, OpenStreetMap tiles, and a little homemade logic that scores your trip against the three-hour gridlock window around kickoff. That's the whole stack. No frameworks were harmed in the making of this app.
-
 ## Fair warning
 
 This is a planning buddy, not a GPS. Distances and drive times are smart estimates, not live traffic — and Metro runs special World Cup service that can move stops around on game days. Always double-check kickoff times and service on **FIFA**, **Metro**, and **Caltrans** before you head out.
