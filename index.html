@@ -1,0 +1,1029 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>SoFi Match-Day Movement — LA World Cup 2026 Traffic Playbook</title>
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,400;12..96,600;12..96,800&family=Inter:wght@400;500;600&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet" />
+<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+<style>
+  :root{
+    --ink:#0A0E1A;
+    --panel:#121829;
+    --panel-2:#0F1424;
+    --line:#222B42;
+    --go:#1EE38C;
+    --caution:#FFB020;
+    --gridlock:#FF5A4D;
+    --text:#ECEFF6;
+    --muted:#8B93AB;
+    --muted-2:#5C667F;
+  }
+  *{box-sizing:border-box;}
+  html{scroll-behavior:smooth;}
+  body{
+    margin:0;
+    background:var(--ink);
+    color:var(--text);
+    font-family:"Inter",system-ui,sans-serif;
+    line-height:1.55;
+    -webkit-font-smoothing:antialiased;
+    overflow-x:hidden;
+  }
+  .wrap{max-width:1080px;margin:0 auto;padding:0 24px;}
+
+  .display{font-family:"Bricolage Grotesque",sans-serif;font-weight:800;line-height:0.98;letter-spacing:-0.02em;}
+  .mono{font-family:"JetBrains Mono",monospace;}
+  .eyebrow{
+    font-family:"JetBrains Mono",monospace;
+    font-size:12px;letter-spacing:0.22em;text-transform:uppercase;
+    color:var(--go);
+  }
+
+  .strip{
+    border-bottom:1px solid var(--line);
+    background:var(--panel-2);
+    font-family:"JetBrains Mono",monospace;
+    font-size:12px;letter-spacing:0.05em;
+  }
+  .strip .wrap{display:flex;gap:18px;align-items:center;padding:11px 24px;flex-wrap:wrap;}
+  .dot{width:8px;height:8px;border-radius:50%;background:var(--go);display:inline-block;box-shadow:0 0 0 0 rgba(30,227,140,.6);animation:pulse 2.4s infinite;}
+  @keyframes pulse{0%{box-shadow:0 0 0 0 rgba(30,227,140,.5);}70%{box-shadow:0 0 0 9px rgba(30,227,140,0);}100%{box-shadow:0 0 0 0 rgba(30,227,140,0);}}
+  .strip b{color:var(--text);font-weight:700;}
+  .strip .sep{color:var(--line);}
+
+  .hero{padding:84px 0 64px;position:relative;}
+  .hero .eyebrow{margin-bottom:22px;}
+  .hero h1{
+    font-size:clamp(44px,8vw,92px);
+    margin:0 0 26px;
+    max-width:14ch;
+  }
+  .hero h1 .hl{color:var(--gridlock);}
+  .hero .lede{font-size:clamp(17px,2.4vw,21px);color:var(--muted);max-width:60ch;margin:0 0 38px;}
+  .hero .lede b{color:var(--text);font-weight:600;}
+  .cta-row{display:flex;gap:14px;flex-wrap:wrap;}
+  .btn{
+    display:inline-flex;align-items:center;gap:9px;
+    font-family:"JetBrains Mono",monospace;font-size:14px;font-weight:500;letter-spacing:0.03em;
+    text-decoration:none;border-radius:2px;padding:14px 20px;
+    transition:transform .15s ease, background .15s ease;
+  }
+  .btn-go{background:var(--go);color:#04261a;font-weight:700;}
+  .btn-go:hover{transform:translateY(-2px);}
+  .btn-ghost{border:1px solid var(--line);color:var(--text);}
+  .btn-ghost:hover{border-color:var(--go);color:var(--go);}
+
+  .ribbon{
+    display:grid;grid-template-columns:repeat(4,1fr);
+    border-top:1px solid var(--line);border-bottom:1px solid var(--line);
+    margin-top:62px;
+  }
+  .ribbon div{padding:24px 22px;border-left:1px solid var(--line);}
+  .ribbon div:first-child{border-left:none;}
+  .ribbon .num{font-family:"Bricolage Grotesque";font-weight:800;font-size:34px;letter-spacing:-0.02em;}
+  .ribbon .num.amber{color:var(--caution);}
+  .ribbon .num.green{color:var(--go);}
+  .ribbon .lbl{font-size:12.5px;color:var(--muted);margin-top:4px;}
+
+  section{padding:78px 0;border-top:1px solid var(--line);}
+  .sec-head{display:flex;align-items:baseline;gap:16px;margin-bottom:8px;}
+  .sec-head .no{font-family:"JetBrains Mono";color:var(--muted-2);font-size:13px;letter-spacing:0.1em;}
+  h2{font-family:"Bricolage Grotesque";font-weight:800;font-size:clamp(28px,4.4vw,44px);letter-spacing:-0.02em;margin:0;}
+  .sec-sub{color:var(--muted);max-width:62ch;margin:16px 0 40px;font-size:16.5px;}
+
+  .board{border:1px solid var(--line);border-radius:4px;overflow:hidden;background:var(--panel);}
+  .board-top{
+    display:flex;justify-content:space-between;align-items:center;
+    background:#0c1322;padding:13px 18px;border-bottom:1px solid var(--line);
+    font-family:"JetBrains Mono";font-size:11.5px;letter-spacing:0.16em;text-transform:uppercase;color:var(--muted);
+  }
+  .board-top .live{color:var(--go);display:flex;align-items:center;gap:8px;}
+  table{width:100%;border-collapse:collapse;}
+  thead th{
+    font-family:"JetBrains Mono";font-size:11px;letter-spacing:0.12em;text-transform:uppercase;
+    color:var(--muted-2);text-align:left;padding:14px 18px;border-bottom:1px solid var(--line);font-weight:500;
+  }
+  tbody td{padding:18px;border-bottom:1px solid var(--line);vertical-align:middle;font-size:14.5px;}
+  tbody tr:last-child td{border-bottom:none;}
+  tbody tr{transition:background .15s ease;}
+  tbody tr:hover{background:#161d31;}
+  .date{font-family:"JetBrains Mono";font-weight:700;color:var(--text);white-space:nowrap;}
+  .date span{display:block;color:var(--muted-2);font-weight:400;font-size:11.5px;letter-spacing:0.05em;margin-top:2px;}
+  .match{font-weight:600;}
+  .match span{display:block;color:var(--muted);font-weight:400;font-size:12.5px;margin-top:2px;}
+  .kick{font-family:"JetBrains Mono";font-weight:500;white-space:nowrap;}
+  .pill{
+    display:inline-block;font-family:"JetBrains Mono";font-size:11px;font-weight:700;letter-spacing:0.06em;
+    padding:5px 10px;border-radius:2px;white-space:nowrap;text-transform:uppercase;
+  }
+  .pill.go{background:rgba(30,227,140,.13);color:var(--go);border:1px solid rgba(30,227,140,.35);}
+  .pill.amber{background:rgba(255,176,32,.12);color:var(--caution);border:1px solid rgba(255,176,32,.35);}
+  .pill.done{background:rgba(139,147,171,.1);color:var(--muted);border:1px solid var(--line);}
+  tr.played td{opacity:0.5;}
+  .board-note{padding:14px 18px;font-size:12.5px;color:var(--muted-2);font-family:"JetBrains Mono";letter-spacing:0.02em;background:#0c1322;}
+
+  .play-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:18px;}
+  .play{
+    border:1px solid var(--line);border-radius:4px;padding:26px 24px;background:var(--panel);
+    position:relative;transition:border-color .18s ease, transform .18s ease;
+  }
+  .play:hover{border-color:var(--go);transform:translateY(-3px);}
+  .play .tag{font-family:"JetBrains Mono";font-size:11px;letter-spacing:0.12em;text-transform:uppercase;color:var(--go);margin-bottom:14px;}
+  .play h3{font-family:"Bricolage Grotesque";font-weight:600;font-size:20px;margin:0 0 10px;letter-spacing:-0.01em;}
+  .play p{margin:0;color:var(--muted);font-size:14.5px;}
+  .play .verdict{margin-top:16px;padding-top:14px;border-top:1px solid var(--line);font-size:13.5px;}
+  .play .verdict b{font-family:"JetBrains Mono";letter-spacing:0.03em;}
+  .v-go b{color:var(--go);}
+  .v-no b{color:var(--gridlock);}
+  .v-maybe b{color:var(--caution);}
+
+  .opt{display:flex;gap:22px;padding:26px 0;border-bottom:1px solid var(--line);align-items:flex-start;}
+  .opt:last-child{border-bottom:none;}
+  .opt .rank{font-family:"Bricolage Grotesque";font-weight:800;font-size:40px;color:var(--line);line-height:1;min-width:54px;}
+  .opt.best .rank{color:var(--go);}
+  .opt .body h3{margin:0 0 6px;font-size:18.5px;font-family:"Bricolage Grotesque";font-weight:600;}
+  .opt .body p{margin:0;color:var(--muted);font-size:14.5px;max-width:64ch;}
+  .opt .body .meta{font-family:"JetBrains Mono";font-size:12px;color:var(--go);margin-top:9px;letter-spacing:0.03em;}
+  .opt .body .meta.warn{color:var(--caution);}
+
+  .callout{
+    border:1px solid rgba(30,227,140,.3);border-radius:4px;
+    background:linear-gradient(180deg,rgba(30,227,140,.06),rgba(30,227,140,0));
+    padding:34px 32px;
+  }
+  .callout .eyebrow{margin-bottom:14px;}
+  .callout h3{font-family:"Bricolage Grotesque";font-weight:800;font-size:clamp(22px,3.4vw,30px);margin:0 0 12px;letter-spacing:-0.01em;}
+  .callout p{margin:0;color:var(--muted);max-width:60ch;font-size:15.5px;}
+  .callout p b{color:var(--text);}
+  .callout-pick{display:flex;flex-direction:column;gap:8px;font-family:"JetBrains Mono";font-size:11px;letter-spacing:0.12em;text-transform:uppercase;color:var(--muted-2);max-width:340px;margin:0 0 18px;}
+  .callout-pick select{background:var(--panel-2);border:1px solid var(--line);color:var(--text);font-family:"Inter",sans-serif;font-size:14px;padding:11px 12px;border-radius:2px;outline:none;}
+  .callout-pick select:focus{border-color:var(--go);}
+  #cMsg{transition:opacity .2s ease;}
+  .copyright{font-family:"JetBrains Mono";font-size:11.5px;color:var(--muted-2);letter-spacing:0.04em;margin:26px 0 0;padding-top:22px;border-top:1px solid var(--line);}
+
+  footer{border-top:1px solid var(--line);padding:54px 0 70px;}
+  footer .links{display:flex;gap:14px;flex-wrap:wrap;margin-bottom:30px;}
+  footer a.lk{font-family:"JetBrains Mono";font-size:13px;color:var(--text);text-decoration:none;border:1px solid var(--line);padding:11px 16px;border-radius:2px;transition:border-color .15s,color .15s;}
+  footer a.lk:hover{border-color:var(--go);color:var(--go);}
+  footer .src{font-size:12px;color:var(--muted-2);font-family:"JetBrains Mono";line-height:1.9;}
+  footer .src b{color:var(--muted);}
+
+  .planner{border:1px solid var(--line);border-radius:4px;background:var(--panel);overflow:hidden;}
+  .nextmatch{display:flex;flex-wrap:wrap;align-items:center;gap:7px 14px;border:1px solid rgba(255,176,32,.35);background:linear-gradient(180deg,rgba(255,176,32,.09),rgba(255,176,32,0));border-radius:4px;padding:14px 18px;margin-bottom:22px;font-family:"JetBrains Mono";font-size:12.5px;color:var(--text);letter-spacing:0.02em;line-height:1.5;}
+  .nextmatch .nm-tag{color:var(--caution);font-weight:700;letter-spacing:0.1em;text-transform:uppercase;font-size:11px;}
+  .nextmatch b{color:var(--text);font-weight:700;}
+  .nextmatch .nm-win{color:var(--caution);}
+  .modebar{display:flex;border-bottom:1px solid var(--line);background:#0c1322;}
+  .modebar button{background:none;border:none;color:var(--muted);font-family:"JetBrains Mono";font-size:11.5px;letter-spacing:0.08em;text-transform:uppercase;padding:14px 20px;cursor:pointer;border-bottom:2px solid transparent;transition:color .15s,border-color .15s;}
+  .modebar button:hover{color:var(--text);}
+  .modebar button.on{color:var(--go);border-bottom-color:var(--go);}
+  .controls{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:14px 16px;align-items:end;padding:22px;border-bottom:1px solid var(--line);background:#0c1322;}
+  .controls label{display:flex;flex-direction:column;gap:7px;font-family:"JetBrains Mono";font-size:11px;letter-spacing:0.12em;text-transform:uppercase;color:var(--muted-2);}
+  .controls select,.controls input[type=time]{
+    background:var(--panel-2);border:1px solid var(--line);color:var(--text);
+    font-family:"Inter",sans-serif;font-size:14px;padding:11px 12px;border-radius:2px;outline:none;width:100%;
+  }
+  .controls select:focus,.controls input:focus{border-color:var(--go);}
+  .controls .btn-go{justify-content:center;cursor:pointer;border:none;font-size:14px;height:fit-content;padding:13px 18px;}
+  .planner-body{display:grid;grid-template-columns:1.4fr 1fr;}
+  #map{height:460px;background:#0c1322;z-index:0;}
+  .result{padding:26px 24px;border-left:1px solid var(--line);min-height:460px;}
+  .result-empty{color:var(--muted-2);font-family:"JetBrains Mono";font-size:13px;line-height:1.8;}
+  .r-route{font-family:"Bricolage Grotesque";font-weight:700;font-size:19px;letter-spacing:-0.01em;margin-bottom:5px;line-height:1.2;}
+  .r-route .arrow{color:var(--go);margin:0 7px;}
+  .r-dist{font-family:"JetBrains Mono";font-size:11.5px;color:var(--muted);margin-bottom:18px;letter-spacing:0.02em;}
+  .r-block{padding:15px 0;border-top:1px solid var(--line);}
+  .r-block .k{font-family:"JetBrains Mono";font-size:10.5px;letter-spacing:0.12em;text-transform:uppercase;color:var(--muted-2);margin-bottom:7px;}
+  .r-block .v{font-size:15px;color:var(--text);}
+  .r-mode .v{font-weight:600;}
+  .itin{list-style:none;margin:8px 0 0;padding:0;counter-reset:leg;}
+  .itin li{position:relative;padding:0 0 16px 26px;border-left:2px solid var(--line);margin-left:8px;}
+  .itin li:last-child{border-left-color:transparent;padding-bottom:0;}
+  .itin li::before{counter-increment:leg;content:counter(leg);position:absolute;left:-11px;top:-2px;width:20px;height:20px;border-radius:50%;background:var(--panel-2);border:1px solid var(--line);color:var(--muted);font-family:"JetBrains Mono";font-size:11px;font-weight:700;display:flex;align-items:center;justify-content:center;}
+  .itin .lt{display:inline-block;font-family:"JetBrains Mono";font-size:9.5px;font-weight:700;letter-spacing:0.08em;color:var(--go);background:rgba(30,227,140,.12);border:1px solid rgba(30,227,140,.32);border-radius:2px;padding:2px 7px;margin-bottom:6px;text-transform:uppercase;}
+  .itin .ltx{font-size:13px;color:var(--text);line-height:1.5;}
+  .r-alt{font-family:"JetBrains Mono";font-size:11.5px;color:var(--muted);margin-top:12px;letter-spacing:0.01em;line-height:1.5;}
+  .r-verdict{display:flex;gap:11px;align-items:flex-start;padding:13px 14px;border-radius:3px;font-size:13.5px;margin-top:2px;line-height:1.5;}
+  .r-verdict .ic{font-family:"JetBrains Mono";font-weight:700;font-size:11px;letter-spacing:0.08em;padding-top:1px;white-space:nowrap;}
+  .rv-go{background:rgba(30,227,140,.1);border:1px solid rgba(30,227,140,.3);}
+  .rv-go .ic{color:var(--go);}
+  .rv-amber{background:rgba(255,176,32,.1);border:1px solid rgba(255,176,32,.3);}
+  .rv-amber .ic{color:var(--caution);}
+  .rv-red{background:rgba(255,90,77,.1);border:1px solid rgba(255,90,77,.3);}
+  .rv-red .ic{color:var(--gridlock);}
+  .r-flag{font-family:"JetBrains Mono";font-size:11.5px;color:var(--caution);margin-top:11px;letter-spacing:0.01em;line-height:1.5;}
+  .leaflet-container{font-family:"Inter",sans-serif !important;background:#0c1322 !important;}
+  .leaflet-popup-content-wrapper,.leaflet-popup-tip{background:#161d31 !important;color:var(--text) !important;border:1px solid var(--line);}
+  .leaflet-popup-content{font-size:12px;}
+  .leaflet-bar a{background:#161d31 !important;color:var(--text) !important;border-color:var(--line) !important;}
+  .leaflet-control-attribution{background:rgba(10,14,26,.7) !important;color:var(--muted-2) !important;}
+  .leaflet-control-attribution a{color:var(--muted) !important;}
+  .mk{border-radius:50%;border:2px solid var(--ink);box-shadow:0 0 0 1px rgba(255,255,255,.12);}
+  @media (max-width:860px){
+    .controls{grid-template-columns:1fr 1fr;}
+    .controls .btn-go{grid-column:1 / -1;}
+    .planner-body{grid-template-columns:1fr;}
+    .result{border-left:none;border-top:1px solid var(--line);min-height:0;}
+    #map{height:340px;}
+  }
+  .r-drive{font-family:"JetBrains Mono";font-size:11.5px;color:var(--muted);margin-top:9px;letter-spacing:0.01em;line-height:1.55;}
+  .r-drive b{color:var(--text);font-weight:600;}
+  .cmp{display:grid;gap:13px;margin-top:2px;}
+  .cmp.two{grid-template-columns:1fr 1fr;}
+  .cmp-col{border:1px solid var(--line);border-radius:3px;padding:14px;background:var(--panel-2);}
+  .cmp-col .dep{font-family:"JetBrains Mono";font-size:12.5px;color:var(--text);font-weight:700;letter-spacing:0.04em;margin-bottom:3px;}
+  .cmp-col .sub{font-family:"JetBrains Mono";font-size:10.5px;color:var(--muted-2);margin-bottom:11px;letter-spacing:0.03em;}
+  .cmp-col .r-verdict{font-size:12.5px;padding:10px 11px;margin-top:0;}
+  .map-legend{font-family:"JetBrains Mono";font-size:10.5px;line-height:1.75;color:var(--text);background:rgba(10,14,26,.85);border:1px solid var(--line);border-radius:3px;padding:9px 11px;letter-spacing:0.02em;}
+  .map-legend i{display:inline-block;width:11px;height:11px;border-radius:50%;margin-right:7px;vertical-align:-1px;}
+  .map-legend i.line{width:16px;height:0;border-top-width:3px;border-top-style:solid;border-radius:0;vertical-align:3px;}
+  @media (max-width:860px){ .cmp.two{grid-template-columns:1fr;} }
+
+  .reveal{opacity:0;transform:translateY(16px);transition:opacity .6s ease, transform .6s ease;}
+  .reveal.in{opacity:1;transform:none;}
+
+  @media (max-width:760px){
+    .ribbon{grid-template-columns:repeat(2,1fr);}
+    .ribbon div:nth-child(3),.ribbon div:nth-child(4){border-top:1px solid var(--line);}
+    .ribbon div:nth-child(odd){border-left:none;}
+    .play-grid{grid-template-columns:1fr;}
+    thead{display:none;}
+    tbody td{display:block;padding:6px 16px;border:none;}
+    tbody tr{display:block;padding:16px 0;border-bottom:1px solid var(--line);}
+    tbody td.date{padding-top:14px;}
+    .opt{gap:14px;}
+    .opt .rank{font-size:30px;min-width:38px;}
+  }
+  @media (prefers-reduced-motion:reduce){
+    *{animation:none !important;}
+    .reveal{opacity:1;transform:none;transition:none;}
+    html{scroll-behavior:auto;}
+  }
+</style>
+</head>
+<body>
+
+  <div class="strip">
+    <div class="wrap">
+      <span class="dot"></span>
+      <span><b>TOURNAMENT LIVE</b> · SoFi Stadium, Inglewood</span>
+      <span class="sep">|</span>
+      <span>6 of 8 LA matches remaining</span>
+      <span class="sep">|</span>
+      <span>Through <b>Jul 10</b> (Quarter-Final)</span>
+    </div>
+  </div>
+
+  <header class="hero">
+    <div class="wrap">
+      <div class="eyebrow reveal">LA Traffic × FIFA World Cup 2026 — The Playbook</div>
+      <h1 class="display reveal">Get where you're going on a <span class="hl">match day</span>.</h1>
+      <p class="lede reveal">Up to <b>70,000 fans</b> pour into Inglewood for each of LA's eight World Cup matches, and the congestion spills across the 405, the 105 and the LAX corridor for hours on either side of kickoff. Whether you're <b>heading to the stadium</b> or just <b>trying to get to work</b>, this tells you how to move — the smart routes in, and the windows and corridors to steer around.</p>
+      <div class="cta-row reveal">
+        <a class="btn btn-go" href="#planner">Plan my route →</a>
+        <a class="btn btn-ghost" href="#board">Match-day board</a>
+        <a class="btn btn-ghost" href="#playbook">The playbook</a>
+      </div>
+
+      <div class="ribbon reveal">
+        <div><div class="num">8</div><div class="lbl">LA matches at SoFi, Jun 12 – Jul 10</div></div>
+        <div><div class="num amber">~3 hrs</div><div class="lbl">Before kickoff that gridlock sets in</div></div>
+        <div><div class="num green">$1.75</div><div class="lbl">Metro express bus, each way, 15 hubs</div></div>
+        <div><div class="num gridlock" style="color:var(--gridlock)">$50–300</div><div class="lbl">On-site parking — prepaid only, no walk-ups</div></div>
+      </div>
+    </div>
+  </header>
+
+  <section id="situation">
+    <div class="wrap">
+      <div class="sec-head reveal"><span class="no">01</span><h2>Why this one is different</h2></div>
+      <p class="sec-sub reveal">SoFi sits about three miles from LAX, wedged between the 405 and the 105, inside the Hollywood Park development — which keeps its casino, hotel, retail and the Forum running on match days too. So you're not just dodging 70,000 soccer fans; you're dodging airport traffic, hotel shuttles, rideshare surge and non-fan foot traffic all overlapping at once.</p>
+      <div class="play-grid">
+        <div class="play reveal">
+          <div class="tag">The pinch points</div>
+          <h3>Where it knots up</h3>
+          <p>Century Blvd, Prairie Ave, Arbor Vitae St and Manchester Blvd around the stadium, plus the 405 and 105 freeways. Evening kickoffs land right on top of the I-405 rush hour.</p>
+        </div>
+        <div class="play reveal">
+          <div class="tag">The state's response</div>
+          <h3>800+ Caltrans staff on deck</h3>
+          <p>California has more than 800 Caltrans personnel across LA and the Bay Area for incident response and traffic management, plus real-time updates on Caltrans QuickMap during the tournament.</p>
+        </div>
+        <div class="play reveal">
+          <div class="tag">Parking reality</div>
+          <h3>Prepaid or turned away</h3>
+          <p>Every on-site lot must be booked in advance — attendants turn away anyone without a digital pass. Closest lots run highest; off-site lots in El Segundo or Hawthorne plus a shuttle are the cheaper play.</p>
+        </div>
+        <div class="play reveal">
+          <div class="tag">Transit response</div>
+          <h3>Direct service to every match</h3>
+          <p>LA Metro and a dozen-plus regional partners run nonstop buses to all eight matches from 15 hubs, starting three to four hours before kickoff. The Metro K Line drops you a walk from the gates.</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section id="planner">
+    <div class="wrap">
+      <div class="sec-head reveal"><span class="no">02</span><h2>Plan your route</h2></div>
+      <p class="sec-sub reveal">Two modes. <b>Going to the match</b> gives you an exact station-by-station route — which line, where to board, where to transfer — with a timing read and drive estimates. <b>Getting around it</b> is for commuters: pick your area and a match, and it tells you whether you're in the impact zone, the window to avoid, and how to route around the gridlock. Green pins are the $1.75 express-bus hubs, the pink line is the Metro K Line, the red pin is SoFi.</p>
+
+      <div id="nextMatch" class="nextmatch reveal"></div>
+
+      <div class="planner reveal">
+        <div class="modebar">
+          <button id="mTrip" class="on" type="button">Going to the match</button>
+          <button id="mCommute" type="button">Getting around it</button>
+        </div>
+        <div class="controls">
+          <label>From
+            <select id="pFrom" aria-label="Starting point"></select>
+          </label>
+          <label>To
+            <select id="pTo" aria-label="Destination">
+              <option value="sofi">SoFi Stadium (Inglewood)</option>
+              <option value="fanzone">Fan Zone — Union Station</option>
+            </select>
+          </label>
+          <label>Match
+            <select id="pMatch" aria-label="Match"></select>
+          </label>
+          <label>Leave at
+            <input type="time" id="pTime" value="08:30" aria-label="Departure time" />
+          </label>
+          <label>Compare (optional)
+            <input type="time" id="pTime2" aria-label="Second departure time to compare" />
+          </label>
+          <button id="pGo" class="btn btn-go" type="button">Get result</button>
+        </div>
+        <div class="planner-body">
+          <div id="map" role="img" aria-label="Map of Los Angeles World Cup transit hubs and SoFi Stadium"></div>
+          <div id="result" class="result">
+            <div class="result-empty">Set your trip above and tap <b>Get result</b>.<br/>Your recommended way in, timing read and route appear here.</div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section id="board">
+    <div class="wrap">
+      <div class="sec-head reveal"><span class="no">03</span><h2>The match-day board</h2></div>
+      <p class="sec-sub reveal">The six SoFi matches still to come. Kickoff times are in Pacific Time — FIFA confirms exact times per match, so double-check before you commit. "Get there by" is the move I'd make for each.</p>
+
+      <div class="board reveal">
+        <div class="board-top">
+          <span>SoFi Stadium · Departures</span>
+          <span class="live"><span class="dot"></span>Updated for remaining fixtures</span>
+        </div>
+        <table>
+          <thead>
+            <tr><th>Date</th><th>Match</th><th>Kickoff PT</th><th>Get there by</th><th>Risk</th></tr>
+          </thead>
+          <tbody>
+            <tr class="played">
+              <td class="date" data-label="Date">JUN 12 <span>FRI · played</span></td>
+              <td class="match" data-label="Match">USA vs Paraguay <span>Group D · LA opener</span></td>
+              <td class="kick" data-label="Kickoff">6:00 PM</td>
+              <td data-label="Get there by">—</td>
+              <td data-label="Risk"><span class="pill done">Played</span></td>
+            </tr>
+            <tr class="played">
+              <td class="date" data-label="Date">JUN 15 <span>MON · played</span></td>
+              <td class="match" data-label="Match">Iran vs New Zealand <span>Group G · 2–2</span></td>
+              <td class="kick" data-label="Kickoff">12:00 PM</td>
+              <td data-label="Get there by">—</td>
+              <td data-label="Risk"><span class="pill done">Played</span></td>
+            </tr>
+            <tr>
+              <td class="date" data-label="Date">JUN 18 <span>THU</span></td>
+              <td class="match" data-label="Match">Switzerland vs Bosnia &amp; Herzegovina <span>Group B</span></td>
+              <td class="kick" data-label="Kickoff">12:00 PM</td>
+              <td data-label="Get there by">Metro K Line / express bus</td>
+              <td data-label="Risk"><span class="pill go">Transit</span></td>
+            </tr>
+            <tr>
+              <td class="date" data-label="Date">JUN 21 <span>SUN</span></td>
+              <td class="match" data-label="Match">Belgium vs Iran <span>Group G</span></td>
+              <td class="kick" data-label="Kickoff">12:00 PM</td>
+              <td data-label="Get there by">Metro K Line / express bus</td>
+              <td data-label="Risk"><span class="pill go">Transit</span></td>
+            </tr>
+            <tr>
+              <td class="date" data-label="Date">JUN 25 <span>THU</span></td>
+              <td class="match" data-label="Match">USA vs Türkiye <span>Group D · highest demand</span></td>
+              <td class="kick" data-label="Kickoff">PM — confirm</td>
+              <td data-label="Get there by">Transit + big time buffer</td>
+              <td data-label="Risk"><span class="pill amber">Rush + crowd</span></td>
+            </tr>
+            <tr>
+              <td class="date" data-label="Date">JUN 28 <span>SUN</span></td>
+              <td class="match" data-label="Match">Round of 32 <span>Match 73</span></td>
+              <td class="kick" data-label="Kickoff">12:00 PM</td>
+              <td data-label="Get there by">Metro K Line / express bus</td>
+              <td data-label="Risk"><span class="pill go">Transit</span></td>
+            </tr>
+            <tr>
+              <td class="date" data-label="Date">JUL 02 <span>THU</span></td>
+              <td class="match" data-label="Match">Round of 32 <span>Match 84</span></td>
+              <td class="kick" data-label="Kickoff">12:00 PM</td>
+              <td data-label="Get there by">Metro K Line / express bus</td>
+              <td data-label="Risk"><span class="pill go">Transit</span></td>
+            </tr>
+            <tr>
+              <td class="date" data-label="Date">JUL 10 <span>FRI</span></td>
+              <td class="match" data-label="Match">Quarter-Final <span>LA's biggest day</span></td>
+              <td class="kick" data-label="Kickoff">PM — confirm</td>
+              <td data-label="Get there by">Transit only — go very early</td>
+              <td data-label="Risk"><span class="pill amber">Peak demand</span></td>
+            </tr>
+          </tbody>
+        </table>
+        <div class="board-note">Verify each kickoff time and matchup at fifa.com before travelling. Group-stage tickets show the assigned group, not the nations, at purchase.</div>
+      </div>
+    </div>
+  </section>
+
+  <section id="playbook">
+    <div class="wrap">
+      <div class="sec-head reveal"><span class="no">04</span><h2>What should we do</h2></div>
+      <p class="sec-sub reveal">Four situations, four straight answers. The thread running through all of them: assume the roads nearest the stadium are unusable for the three hours either side of kickoff, and plan backwards from that.</p>
+      <div class="play-grid">
+        <div class="play reveal">
+          <div class="tag">Going to a match</div>
+          <h3>Take the train, arrive 90+ min early</h3>
+          <p>Ride the Metro K Line to Westchester/Veterans and walk in, or grab a $1.75 express bus from one of the 15 hubs. Buses start 3–4 hours out. Skip the rideshare-to-the-stadium fantasy — surge pricing and post-game gridlock are brutal.</p>
+          <div class="verdict v-go"><b>VERDICT — TRANSIT.</b> Cheapest, most predictable, no parking gamble.</div>
+        </div>
+        <div class="play reveal">
+          <div class="tag">Must drive</div>
+          <h3>Park off-site, prepay, buffer 3 hours</h3>
+          <p>If you genuinely have to drive, book a prepaid lot in advance (no walk-ups), or park out in El Segundo/Hawthorne and shuttle the last leg. For evening kickoffs that overlap the 405 rush, give yourself 3+ hours.</p>
+          <div class="verdict v-maybe"><b>VERDICT — ONLY IF YOU MUST.</b> Expect $50–$300 and a slow exit.</div>
+        </div>
+        <div class="play reveal">
+          <div class="tag">Not going, but live/work nearby</div>
+          <h3>Avoid Inglewood on match windows</h3>
+          <p>If you're anywhere near Century, Prairie, Arbor Vitae, Manchester, the 405 or 105, expect your normal route to balloon. Run errands before the 3-hour pre-game window or route well around the stadium. Check QuickMap before you leave.</p>
+          <div class="verdict v-no"><b>VERDICT — REROUTE.</b> Treat the stadium zone as closed during games.</div>
+        </div>
+        <div class="play reveal">
+          <div class="tag">Just want the atmosphere</div>
+          <h3>Hit a Fan Zone instead of fighting in</h3>
+          <p>FIFA Fan Zone events run at Union Station later in the tournament, with enhanced Metrolink rail after matches. You get the World Cup energy without the Inglewood crush or a ticket. Transit there and back.</p>
+          <div class="verdict v-go"><b>VERDICT — GO CAR-FREE.</b> All the buzz, none of the parking.</div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section id="options">
+    <div class="wrap">
+      <div class="sec-head reveal"><span class="no">05</span><h2>Ways in, ranked</h2></div>
+      <p class="sec-sub reveal">From the move I'd make first to the one I'd avoid. Same destination, very different days.</p>
+
+      <div class="opt best reveal">
+        <div class="rank">1</div>
+        <div class="body">
+          <h3>Metro K Line rail</h3>
+          <p>The most reliable option. Take the K Line to Westchester/Veterans station and walk to the gates. No parking, no surge, no sitting in the post-game lot exit.</p>
+          <div class="meta">Arrive ≥ 90 min before kickoff · connects via LAX/Metro Transit Center</div>
+        </div>
+      </div>
+      <div class="opt reveal">
+        <div class="rank">2</div>
+        <div class="body">
+          <h3>$1.75 direct express buses</h3>
+          <p>Nonstop service to every match from 15 hubs across the county — Union Station, downtown Santa Monica, North Hollywood, Pierce College, Torrance, Long Beach, Anaheim's ARTIC and more. Service ramps up 3–4 hours before kickoff.</p>
+          <div class="meta">Cheapest door-to-gate option · no parking to book</div>
+        </div>
+      </div>
+      <div class="opt reveal">
+        <div class="rank">3</div>
+        <div class="body">
+          <h3>Park-and-ride / off-site + shuttle</h3>
+          <p>Leave the car in El Segundo or Hawthorne and shuttle or short-rideshare the final mile. Sidesteps the worst of the stadium-area congestion and the priciest lots.</p>
+          <div class="meta warn">Still prepay where required · plan the return leg too</div>
+        </div>
+      </div>
+      <div class="opt reveal">
+        <div class="rank">4</div>
+        <div class="body">
+          <h3>E-bike for the final mile</h3>
+          <p>If you're staying in Inglewood, Westchester or Hawthorne, an e-bike can skip the slowest local street segments entirely. Niche, but a genuine gridlock bypass for the last leg.</p>
+          <div class="meta warn">Only practical if you're already close</div>
+        </div>
+      </div>
+      <div class="opt reveal">
+        <div class="rank">5</div>
+        <div class="body">
+          <h3>Drive all the way to the stadium</h3>
+          <p>The one to avoid. Prepaid-only lots at $50–$300, rideshare surge, and a post-game exit that can crawl. Reserve this for "no other option," and pad your timing heavily.</p>
+          <div class="meta warn">Last resort · 3+ hour buffer on evening games</div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section id="local">
+    <div class="wrap">
+      <div class="callout reveal">
+        <div class="eyebrow">Find your pickup</div>
+        <h3>Pick your area — see your ride in.</h3>
+        <label class="callout-pick">Coming from
+          <select id="cArea" aria-label="Choose your starting area">
+            <option value="" selected disabled>Choose your area…</option>
+          </select>
+        </label>
+        <p id="cMsg">Select where you're starting to see your $1.75 ride to SoFi.</p>
+      </div>
+    </div>
+  </section>
+
+  <footer>
+    <div class="wrap">
+      <div class="eyebrow reveal" style="margin-bottom:18px;">Live tools &amp; official sources</div>
+      <div class="links reveal">
+        <a class="lk" href="https://quickmap.dot.ca.gov/" target="_blank" rel="noopener">Caltrans QuickMap ↗</a>
+        <a class="lk" href="https://www.metro.net/" target="_blank" rel="noopener">LA Metro ↗</a>
+        <a class="lk" href="https://www.fifa.com/en/tournaments/mens/worldcup/canadamexicousa2026" target="_blank" rel="noopener">FIFA fixtures ↗</a>
+      </div>
+      <p class="src reveal">
+        <b>Compiled from reporting current as of June 16, 2026:</b><br/>
+        Office of the Governor of California (Caltrans mobilization) · FOX 11 LA &amp; ABC7 (Metro express service, crowd estimates) · J&amp;Y Law and Attorney Jeff (transit hubs, parking) · traffic-planner.com (match windows, 405 overlap) · InglewoodTickets / KickoffAdventures (SoFi schedule) · NBC Sports &amp; Yahoo Sports (fixtures &amp; kickoff times).<br/><br/>
+        Always confirm kickoff times, lot bookings and service changes on the official FIFA, Metro and Caltrans channels before you travel — details shift during the tournament.
+      </p>
+      <p class="copyright reveal">© 2026 wuisabel-gif. All rights reserved.</p>
+    </div>
+  </footer>
+
+<script>
+
+  (function(){
+    var reduce = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+    var els = document.querySelectorAll('.reveal');
+    if(reduce || !('IntersectionObserver' in window)){
+      els.forEach(function(e){e.classList.add('in');});
+      return;
+    }
+    var io = new IntersectionObserver(function(entries){
+      entries.forEach(function(en){
+        if(en.isIntersecting){ en.target.classList.add('in'); io.unobserve(en.target); }
+      });
+    },{threshold:0.12, rootMargin:'0px 0px -40px 0px'});
+    els.forEach(function(e){io.observe(e);});
+
+    setTimeout(function(){
+      document.querySelectorAll('.hero .reveal').forEach(function(e,i){
+        setTimeout(function(){e.classList.add('in');}, i*90);
+      });
+    },120);
+  })();
+</script>
+
+<script>
+
+  (function(){
+    var mapEl = document.getElementById('map');
+    if(typeof L === 'undefined'){
+      mapEl.innerHTML = '<div style="padding:24px;color:#8B93AB;font-family:monospace;font-size:13px;">Map could not load — check your connection. The planner still works.</div>';
+    }
+
+    var SOFI = {name:'SoFi Stadium (Inglewood)', lat:33.9534, lng:-118.3387};
+    var DEST = {
+      sofi: SOFI,
+      fanzone: {name:'Fan Zone — Union Station', lat:34.0561, lng:-118.2365}
+    };
+
+    var HUBS = [
+      {id:'union',   name:'Union Station (DTLA)',            lat:34.0561, lng:-118.2365, hub:true, rail:'Metro rail hub'},
+      {id:'smo',     name:'Downtown Santa Monica',           lat:34.0140, lng:-118.4912, hub:true, rail:'E Line'},
+      {id:'noho',    name:'North Hollywood',                 lat:34.1683, lng:-118.3766, hub:true, rail:'B Line'},
+      {id:'pierce',  name:'Pierce College (Woodland Hills)', lat:34.1859, lng:-118.5770, hub:true},
+      {id:'harbor',  name:'Harbor Gateway Transit Center',   lat:33.8298, lng:-118.2925, hub:true},
+      {id:'elcamino',name:'El Camino College (Torrance)',    lat:33.8880, lng:-118.3290, hub:true},
+      {id:'lbc',     name:'Downtown Long Beach',             lat:33.7683, lng:-118.1930, hub:true, rail:'A Line'},
+      {id:'artic',   name:'ARTIC (Anaheim)',                 lat:33.8030, lng:-117.8830, hub:true},
+      {id:'newport', name:'Newport Beach',                   lat:33.6189, lng:-117.9298, hub:true},
+      {id:'lax',     name:'LAX / Metro Transit Center',      lat:33.9447, lng:-118.3760, hub:true, rail:'C & K Lines'}
+    ];
+
+    var NEIGH = [
+      {id:'n_dtla',   name:'Downtown LA',            lat:34.0407, lng:-118.2468},
+      {id:'n_holly',  name:'Hollywood',              lat:34.1016, lng:-118.3267},
+      {id:'n_pas',    name:'Pasadena',               lat:34.1478, lng:-118.1445},
+      {id:'n_culver', name:'Culver City',            lat:34.0211, lng:-118.3965},
+      {id:'n_ingle',  name:'Inglewood (local)',      lat:33.9617, lng:-118.3531},
+      {id:'n_glen',   name:'Glendale / Burbank',     lat:34.1466, lng:-118.2550}
+    ];
+
+    var MATCHES = [
+      {id:'0618', label:'Jun 18 · Switzerland v Bosnia', date:'2026-06-18', kick:720,  confirm:false, eve:false},
+      {id:'0621', label:'Jun 21 · Belgium v Iran',       date:'2026-06-21', kick:720,  confirm:false, eve:false},
+      {id:'0625', label:'Jun 25 · USA v Türkiye',        date:'2026-06-25', kick:1020, confirm:true,  eve:true},
+      {id:'0628', label:'Jun 28 · Round of 32',          date:'2026-06-28', kick:720,  confirm:false, eve:false},
+      {id:'0702', label:'Jul 2 · Round of 32',           date:'2026-07-02', kick:720,  confirm:false, eve:false},
+      {id:'0710', label:'Jul 10 · Quarter-Final',        date:'2026-07-10', kick:1020, confirm:true,  eve:true}
+    ];
+
+    var fromSel = document.getElementById('pFrom');
+    var matchSel = document.getElementById('pMatch');
+    var all = HUBS.concat(NEIGH);
+
+    var og1 = document.createElement('optgroup'); og1.label = 'Express-bus hubs';
+    HUBS.forEach(function(h){ var o=document.createElement('option'); o.value=h.id; o.textContent=h.name; og1.appendChild(o); });
+    var og2 = document.createElement('optgroup'); og2.label = 'Other areas (routed to nearest hub)';
+    NEIGH.forEach(function(h){ var o=document.createElement('option'); o.value=h.id; o.textContent=h.name; og2.appendChild(o); });
+    fromSel.appendChild(og1); fromSel.appendChild(og2);
+    fromSel.value = 'smo';
+    MATCHES.forEach(function(m){ var o=document.createElement('option'); o.value=m.id; o.textContent=m.label; matchSel.appendChild(o); });
+
+    function find(id){ for(var i=0;i<all.length;i++){ if(all[i].id===id) return all[i]; } return all[0]; }
+    function hav(a,b){
+      var R=3958.8, dl=(b.lat-a.lat)*Math.PI/180, dn=(b.lng-a.lng)*Math.PI/180;
+      var x=Math.sin(dl/2)*Math.sin(dl/2)+Math.cos(a.lat*Math.PI/180)*Math.cos(b.lat*Math.PI/180)*Math.sin(dn/2)*Math.sin(dn/2);
+      return R*2*Math.atan2(Math.sqrt(x),Math.sqrt(1-x));
+    }
+    function nearestHub(p){ var best=HUBS[0], bd=1e9; HUBS.forEach(function(h){ var d=hav(p,h); if(d<bd){bd=d;best=h;} }); return {hub:best, dist:bd}; }
+    function fmt(min){ var h=Math.floor(min/60), m=min%60, ap=h>=12?'PM':'AM', hh=h%12; if(hh===0)hh=12; return hh+':'+String(m).padStart(2,'0')+' '+ap; }
+    function hrs(min){ return (min/60).toFixed(1).replace('.0',''); }
+
+    var map=null, routeLayer=null;
+    function makeDot(color,size){
+      return L.divIcon({className:'', html:'<div class="mk" style="width:'+size+'px;height:'+size+'px;background:'+color+'"></div>', iconSize:[size,size], iconAnchor:[size/2,size/2]});
+    }
+    if(typeof L !== 'undefined'){
+      map = L.map('map',{scrollWheelZoom:false}).setView([33.99,-118.30],10);
+      L.tileLayer('https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png',{
+        attribution:'© OpenStreetMap © CARTO', subdomains:'abcd', maxZoom:18
+      }).addTo(map);
+      HUBS.forEach(function(h){
+        L.marker([h.lat,h.lng],{icon:makeDot('#1EE38C',11)}).addTo(map)
+          .bindPopup('<b>'+h.name+'</b><br>$1.75 express-bus hub'+(h.rail?' · '+h.rail:''));
+      });
+      L.marker([SOFI.lat,SOFI.lng],{icon:makeDot('#FF5A4D',18)}).addTo(map)
+        .bindPopup('<b>SoFi Stadium</b><br>Inglewood · match venue');
+
+      var KLINE = [
+        [34.0233,-118.3353],
+        [34.0110,-118.3354],
+        [34.0010,-118.3325],
+        [33.9872,-118.3325],
+        [33.9760,-118.3525],
+        [33.9618,-118.3528],
+        [33.9622,-118.3737],
+        [33.9460,-118.3775]
+      ];
+      L.polyline(KLINE,{color:'#E36FB0',weight:3,opacity:0.75}).addTo(map).bindPopup('Metro K Line');
+      [
+        {c:[33.9622,-118.3737], n:'Westchester/Veterans — closest K Line stop to SoFi'},
+        {c:[33.9618,-118.3528], n:'Downtown Inglewood Station'}
+      ].forEach(function(s){
+        L.marker(s.c,{icon:makeDot('#E36FB0',9)}).addTo(map).bindPopup('<b>K Line</b><br>'+s.n);
+      });
+
+      var legend = L.control({position:'topright'});
+      legend.onAdd = function(){
+        var d = L.DomUtil.create('div','map-legend');
+        d.innerHTML =
+            '<i style="background:#FF5A4D"></i>SoFi Stadium<br>'
+          + '<i style="background:#1EE38C"></i>Express-bus hub<br>'
+          + '<i class="line" style="border-top-color:#E36FB0"></i>Metro K Line<br>'
+          + '<i class="line" style="border-top-color:#1EE38C"></i>Your route<br>'
+          + '<i style="background:#FFFFFF"></i>Start';
+        return d;
+      };
+      legend.addTo(map);
+
+      setTimeout(function(){ map.invalidateSize(); }, 350);
+      window.addEventListener('resize', function(){ map.invalidateSize(); });
+    }
+
+    function driveEst(dist, before, eve){
+      var road = dist*1.30;
+      var typ = road/27*60;
+      var f;
+      if(before>=0 && before<=180) f=1.9;
+      else if(before>180 && before<=300) f=1.35;
+      else if(before<0 && before>=-150) f=1.7;
+      else f=1.15;
+      if(eve) f+=0.25;
+      return {typ:Math.max(8,Math.round(typ)), match:Math.max(10,Math.round(typ*f))};
+    }
+    function verdict(before){
+      if(before>=180) return {cls:'rv-go',   ic:'CLEAR',  msg:'Leaves '+hrs(before)+' hrs before kickoff — ahead of the three-hour gridlock window.'};
+      if(before>=120) return {cls:'rv-amber', ic:'TIGHT',  msg:Math.round(before)+' min before kickoff — into the build-up. OK on transit, risky driving.'};
+      if(before>=0)   return {cls:'rv-red',   ic:'CRUNCH', msg:'Only '+Math.round(before)+' min before kickoff — the worst of it. Transit only; you may miss the start.'};
+      return {cls:'rv-red', ic:'LATE', msg:Math.abs(Math.round(before))+' min after kickoff — pick an earlier time.'};
+    }
+    function planCol(dep, dist, match){
+      var before = match.kick - dep;
+      var v = verdict(before);
+      var d = driveEst(dist, before, match.eve);
+      return '<div class="cmp-col">'
+        + '<div class="dep">LEAVE '+fmt(dep)+'</div>'
+        + '<div class="sub">'+(before>=0 ? Math.round(before)+' min before kickoff' : Math.abs(Math.round(before))+' min after kickoff')+'</div>'
+        + '<div class="r-verdict '+v.cls+'"><span class="ic">'+v.ic+'</span><span>'+v.msg+'</span></div>'
+        + '<div class="r-drive">Driving ≈ <b>'+d.typ+' min</b> off-peak · <b>~'+d.match+' min</b> match day'+(match.eve?' (405 rush)':'')+'</div>'
+        + '</div>';
+    }
+    function toMin(v){ var p=v.split(':'); return parseInt(p[0],10)*60+parseInt(p[1],10); }
+
+    function leg(tag,text){ return {tag:tag, text:text}; }
+    function legColor(tag){
+      if(/A LINE/.test(tag)) return '#0072BC';
+      if(/B\/D LINE|B LINE/.test(tag)) return '#E4002B';
+      if(/D LINE/.test(tag)) return '#A05DA5';
+      if(/E LINE/.test(tag)) return '#00A3E0';
+      if(/C LINE/.test(tag)) return '#00A94F';
+      if(/K LINE/.test(tag)) return '#E170A9';
+      if(/G LINE/.test(tag)) return '#F58025';
+      if(/J LINE/.test(tag)) return '#9A9A9D';
+      if(/METROLINK/.test(tag)) return '#004B87';
+      if(/OCTA/.test(tag)) return '#F58025';
+      if(/EXPRESS BUS/.test(tag)) return '#1EE38C';
+      if(/SHUTTLE/.test(tag)) return '#FFB020';
+      if(/HERE/.test(tag)) return '#1EE38C';
+      return '#5C667F';
+    }
+    function legText(col){ return /#1EE38C|#FFB020|#9A9A9D/.test(col) ? '#0A0E1A' : '#FFFFFF'; }
+    var STA = {
+      union:'Union Station', smo:'Downtown Santa Monica Station', noho:'North Hollywood Station',
+      pierce:'Pierce College Transit Hub', harbor:'Harbor Gateway Transit Center', elcamino:'El Camino College Transit Center',
+      lbc:'Downtown Long Beach Station', artic:'ARTIC (Anaheim)', newport:'Newport Beach pickup', lax:'LAX/Metro Transit Center'
+    };
+    var ITIN = {
+      union:{
+        sofi:[leg('EXPRESS BUS','Board the World Cup express bus at Union Station → SoFi Stadium transit drop-off, steps from the gates.')],
+        union:[leg('YOU\'RE HERE','You\'re already at Union Station — the FIFA Fan Zone is on site.')]
+      },
+      smo:{
+        sofi:[leg('E LINE','Board at Downtown Santa Monica Station → ride east to Expo/Crenshaw Station.'),
+              leg('K LINE','Transfer at Expo/Crenshaw → ride south to Westchester/Veterans Station.'),
+              leg('SHUTTLE','SoFi stadium shuttle (or ~20-min walk) to the gates.')],
+        union:[leg('E LINE','Board at Downtown Santa Monica Station → ride to 7th St/Metro Center.'),
+               leg('B/D LINE','Transfer at 7th St/Metro Center → ride to Union Station.')]
+      },
+      noho:{
+        sofi:[leg('EXPRESS BUS','Board the express bus at North Hollywood Station → SoFi Stadium drop-off.')],
+        union:[leg('B LINE','Board at North Hollywood Station → ride direct to Union Station.')]
+      },
+      pierce:{
+        sofi:[leg('EXPRESS BUS','Board the express bus at Pierce College → SoFi Stadium drop-off.')],
+        union:[leg('G LINE','Board at Pierce College → ride to North Hollywood Station.'),
+               leg('B LINE','Transfer at North Hollywood → ride to Union Station.')]
+      },
+      harbor:{
+        sofi:[leg('EXPRESS BUS','Board the express bus at Harbor Gateway Transit Center → SoFi Stadium drop-off.')],
+        union:[leg('J LINE','Board at Harbor Gateway Transit Center → ride to Union Station (Patsaouras Plaza).')]
+      },
+      elcamino:{
+        sofi:[leg('EXPRESS BUS','Board the express bus at El Camino College Transit Center → SoFi Stadium drop-off.')],
+        union:[leg('CONNECT','Take the J Line / Metro bus toward downtown → Union Station.')]
+      },
+      lbc:{
+        sofi:[leg('EXPRESS BUS','Board the express bus at Downtown Long Beach Station → SoFi Stadium drop-off.')],
+        union:[leg('A LINE','Board at Downtown Long Beach Station → ride direct to Union Station.')]
+      },
+      artic:{
+        sofi:[leg('EXPRESS BUS','Board the express bus at ARTIC → SoFi Stadium drop-off.')],
+        union:[leg('METROLINK','Board Metrolink / Amtrak at ARTIC → ride direct to LA Union Station.')]
+      },
+      newport:{
+        sofi:[leg('EXPRESS BUS','Board the express bus at the Newport Beach pickup → SoFi Stadium drop-off.')],
+        union:[leg('OCTA + METROLINK','OCTA bus to the nearest Metrolink station, then Metrolink → Union Station.')]
+      },
+      lax:{
+        sofi:[leg('K LINE','Board at LAX/Metro Transit Center → ride 2 stops to Westchester/Veterans Station.'),
+              leg('SHUTTLE','SoFi stadium shuttle (or ~20-min walk) to the gates.')],
+        union:[leg('K LINE','Board at LAX/Metro Transit Center → ride to Expo/Crenshaw Station.'),
+               leg('E LINE','Transfer at Expo/Crenshaw → ride to 7th St/Metro Center.'),
+               leg('B/D LINE','Transfer at 7th St/Metro Center → ride to Union Station.')]
+      }
+    };
+    var ALT = {
+      smo:{sofi:'Simpler option: the $1.75 express bus direct from Downtown Santa Monica to the stadium.'},
+      lax:{sofi:'Or take the $1.75 express bus direct to the stadium.'},
+      union:{sofi:'Rail alt: E Line to Expo/Crenshaw, transfer K Line to Westchester/Veterans, then the stadium shuttle.'},
+      noho:{sofi:'Rail needs two transfers (B → E → K) — the direct bus is the easy call.'},
+      lbc:{sofi:'Rail to SoFi needs multiple transfers; the direct bus is simpler.'}
+    };
+
+    function commuteCompute(){
+      var origin = find(fromSel.value);
+      var match = MATCHES.filter(function(m){return m.id===matchSel.value;})[0];
+      var dep1 = toMin(document.getElementById('pTime').value || '08:30');
+      var t2 = document.getElementById('pTime2').value;
+      var dep2 = t2 ? toMin(t2) : null;
+      var dist = hav(origin, SOFI);
+      var winStart = match.kick - 180, winEnd = match.kick + 120;
+
+      var zoneCls, zoneIc, zoneMsg;
+      if(dist <= 4){ zoneCls='rv-red'; zoneIc='HIGH'; zoneMsg='You\'re in the heart of the impact zone (~'+dist.toFixed(1)+' mi from SoFi). Match days hit hard here.'; }
+      else if(dist <= 8){ zoneCls='rv-amber'; zoneIc='MODERATE'; zoneMsg='Close enough (~'+dist.toFixed(1)+' mi) to feel match-day spillover on local streets and freeways.'; }
+      else { zoneCls='rv-go'; zoneIc='LOW'; zoneMsg='Mostly clear (~'+dist.toFixed(1)+' mi out). Your main risk is freeway spillover on the 405/105.'; }
+
+      function col(dep){
+        var inWin = dep >= winStart && dep <= winEnd;
+        var cls, ic, msg;
+        if(dist > 8 && !inWin){ cls='rv-go'; ic='CLEAR'; msg='Outside the zone and outside the match window — expect a normal commute.'; }
+        else if(dist > 8 && inWin){ cls='rv-amber'; ic='WATCH'; msg='Freeway spillover on the 405/105 peaks during the window. Pad time or shift your trip.'; }
+        else if(dist <= 8 && !inWin){ cls='rv-amber'; ic='OK FOR NOW'; msg='Your trip falls outside the window — leave margin and check QuickMap before you go.'; }
+        else { cls='rv-red'; ic='AVOID'; msg='You\'re in the zone during the window. Expect heavy delays around Inglewood.'; }
+        return '<div class="cmp-col">'
+          + '<div class="dep">PASS THROUGH '+fmt(dep)+'</div>'
+          + '<div class="sub">'+(inWin?'inside the match window':'outside the match window')+'</div>'
+          + '<div class="r-verdict '+cls+'"><span class="ic">'+ic+'</span><span>'+msg+'</span></div>'
+          + '</div>';
+      }
+      var twoUp = dep2 !== null;
+      var cols = col(dep1) + (twoUp ? col(dep2) : '');
+      var confFlag = match.confirm ? 'Kickoff time not yet final — confirm on fifa.com.' : '';
+
+      var html = ''
+        + '<div class="r-route">'+origin.name+'<span class="arrow">vs</span>match-day traffic</div>'
+        + '<div class="r-dist">~'+dist.toFixed(1)+' mi from SoFi · '+match.label+' · kickoff '+fmt(match.kick)+'</div>'
+        + '<div class="r-block"><div class="k">Stadium impact on your area</div>'
+        +   '<div class="r-verdict '+zoneCls+'"><span class="ic">'+zoneIc+'</span><span>'+zoneMsg+'</span></div></div>'
+        + '<div class="r-block"><div class="k">Window to avoid</div>'
+        +   '<div class="v">'+fmt(winStart)+' – '+fmt(winEnd)+' <span style="color:var(--muted-2);font-size:12px;">(3 hrs before to ~2 hrs after kickoff)</span></div></div>'
+        + '<div class="r-block"><div class="k">'+(twoUp?'Compare your travel times':'Your travel time')+'</div>'
+        +   '<div class="cmp '+(twoUp?'two':'')+'">'+cols+'</div>'
+        +   (confFlag ? '<div class="r-flag">⚠ '+confFlag+'</div>' : '')
+        + '</div>'
+        + '<div class="r-block"><div class="k">How to beat it</div>'
+        +   '<div class="ltx" style="line-height:1.65;"><b>Time it:</b> travel before '+fmt(winStart)+' or after '+fmt(winEnd)+'.<br><b>Route around it:</b> steer clear of the I-405/I-105 interchange and Century, Prairie, Arbor Vitae and Manchester near Inglewood.<br><b>Skip the roads:</b> Metro rail dodges the stadium gridlock entirely.</div></div>';
+      document.getElementById('result').innerHTML = html;
+
+      if(map){
+        if(routeLayer){ map.removeLayer(routeLayer); }
+        var zone = L.circle([SOFI.lat,SOFI.lng],{radius:8000,color:'#FF5A4D',weight:1,fillColor:'#FF5A4D',fillOpacity:0.08});
+        var startMk = L.marker([origin.lat,origin.lng],{icon:makeDot('#FFFFFF',15)}).bindPopup('<b>Your area</b><br>'+origin.name);
+        routeLayer = L.layerGroup([zone, startMk]).addTo(map);
+        map.invalidateSize();
+        var b = zone.getBounds(); b.extend([origin.lat,origin.lng]);
+        map.fitBounds(b.pad(0.15));
+      }
+    }
+
+    var mode = 'trip';
+    function compute(){
+      if(mode === 'commute'){ return commuteCompute(); }
+      var origin = find(fromSel.value);
+      var toKey = document.getElementById('pTo').value;
+      var dest = DEST[toKey];
+      var itinKey = (toKey === 'fanzone') ? 'union' : 'sofi';
+      var match = MATCHES.filter(function(m){return m.id===matchSel.value;})[0];
+      var dep1 = toMin(document.getElementById('pTime').value || '08:30');
+      var t2 = document.getElementById('pTime2').value;
+      var dep2 = t2 ? toMin(t2) : null;
+      var dist = hav(origin, dest);
+
+      var steps, viaHub = null, altLine = '';
+      if(origin.hub){
+        steps = ITIN[origin.id][itinKey].slice();
+        if(ALT[origin.id] && ALT[origin.id][itinKey]){ altLine = ALT[origin.id][itinKey]; }
+      } else {
+        var nh = nearestHub(origin); viaHub = nh.hub;
+        steps = [leg('GET TO HUB','From '+origin.name+', make your way to '+STA[nh.hub.id]+' (~'+nh.dist.toFixed(1)+' mi — drive, rideshare or local transit).')]
+                  .concat(ITIN[nh.hub.id][itinKey]);
+      }
+      var busUsed = steps.some(function(s){return /EXPRESS BUS/.test(s.tag);});
+      var railUsed = steps.some(function(s){return /LINE|METROLINK/.test(s.tag);});
+      var modeLabel = busUsed ? '$1.75 express bus' : (railUsed ? 'Metro rail' : 'transit');
+
+      var stepsHtml = '<ol class="itin">' + steps.map(function(s){
+        var col = legColor(s.tag), txt = legText(col);
+        return '<li><span class="lt" style="background:'+col+';border-color:'+col+';color:'+txt+'">'+s.tag+'</span><div class="ltx">'+s.text+'</div></li>';
+      }).join('') + '</ol>';
+
+      var gateBy = match.kick - 90;
+      var gateLabel = (toKey === 'fanzone') ? 'Aim to arrive by' : 'Be at the gate by';
+      var confFlag = match.confirm ? 'Kickoff time not yet final — confirm on fifa.com.' : '';
+      var twoUp = dep2 !== null;
+      var cols = planCol(dep1, dist, match) + (twoUp ? planCol(dep2, dist, match) : '');
+
+      var html = ''
+        + '<div class="r-route">'+origin.name+'<span class="arrow">→</span>'+dest.name+'</div>'
+        + '<div class="r-dist">straight-line '+dist.toFixed(1)+' mi · '+match.label+' · kickoff '+fmt(match.kick)+'</div>'
+        + '<div class="r-block r-mode"><div class="k">Step-by-step — '+modeLabel+'</div>'+stepsHtml
+        +   (altLine ? '<div class="r-alt">'+altLine+'</div>' : '')+'</div>'
+        + '<div class="r-block"><div class="k">'+(twoUp?'Compare departures':'Timing &amp; drive estimate')+'</div>'
+        +   '<div class="cmp '+(twoUp?'two':'')+'">'+cols+'</div>'
+        +   (confFlag ? '<div class="r-flag">⚠ '+confFlag+'</div>' : '')
+        + '</div>'
+        + '<div class="r-block"><div class="k">'+gateLabel+'</div>'
+        +   '<div class="v">'+fmt(gateBy)+' <span style="color:var(--muted-2);font-size:12px;">(≈90 min before kickoff)</span></div>'
+        +   '<div class="r-drive" style="margin-top:9px;">Drive times are rough — road-distance estimate with a match-day surcharge, not live traffic. Transit dodges the worst of it.</div></div>';
+      document.getElementById('result').innerHTML = html;
+
+      if(map){
+        if(routeLayer){ map.removeLayer(routeLayer); }
+        var pts = [[origin.lat,origin.lng]];
+        if(viaHub){ pts.push([viaHub.lat,viaHub.lng]); }
+        pts.push([dest.lat,dest.lng]);
+        var line = L.polyline(pts, {color:'#1EE38C', weight:3, opacity:0.85, dashArray:'2,7'});
+        var startMk = L.marker([origin.lat,origin.lng],{icon:makeDot('#FFFFFF',15)}).bindPopup('<b>Start</b><br>'+origin.name);
+        var members = [line, startMk];
+        if(viaHub){ members.push(L.marker([viaHub.lat,viaHub.lng],{icon:makeDot('#FFB020',13)}).bindPopup('<b>Transfer hub</b><br>'+viaHub.name)); }
+        routeLayer = L.layerGroup(members).addTo(map);
+        map.invalidateSize();
+        map.fitBounds(L.latLngBounds(pts).pad(0.28));
+      }
+    }
+
+    function updateNextMatch(){
+      var el = document.getElementById('nextMatch'); if(!el) return;
+      var now = new Date(), upcoming = null;
+      for(var i=0;i<MATCHES.length;i++){
+        var m=MATCHES[i], p=m.date.split('-');
+        var dt=new Date(parseInt(p[0],10), parseInt(p[1],10)-1, parseInt(p[2],10), Math.floor(m.kick/60), m.kick%60);
+        if(dt.getTime() >= now.getTime()){ upcoming={m:m,dt:dt}; break; }
+      }
+      if(!upcoming){
+        el.innerHTML='<span class="nm-tag">All clear</span> LA\'s World Cup matches have wrapped — roads are back to normal.';
+        return;
+      }
+      var m=upcoming.m, dt=upcoming.dt, diff=dt.getTime()-now.getTime();
+      var days=Math.floor(diff/86400000), hoursR=Math.floor((diff%86400000)/3600000);
+      var when = days>0 ? ('in '+days+'d '+hoursR+'h') : (hoursR>0 ? ('in '+hoursR+'h') : 'starting soon');
+      var dow=['Sun','Mon','Tue','Wed','Thu','Fri','Sat'][dt.getDay()];
+      var parts=m.label.split(' · ');
+      el.innerHTML='<span class="nm-tag">Next match-day disruption</span> '
+        + '<b>'+dow+' '+parts[0]+'</b> · '+parts[1]+' · kickoff <b>'+fmt(m.kick)+'</b> ('+when+') · '
+        + '<span class="nm-win">avoid '+fmt(m.kick-180)+'–'+fmt(m.kick+120)+' near SoFi</span>';
+    }
+    updateNextMatch();
+
+    var toLabel = document.getElementById('pTo').parentNode;
+    function setMode(m){
+      mode = m;
+      document.getElementById('mTrip').classList.toggle('on', m==='trip');
+      document.getElementById('mCommute').classList.toggle('on', m==='commute');
+      var toSel = document.getElementById('pTo');
+      if(m === 'commute'){
+        toSel.disabled = true; toLabel.style.opacity = 0.4;
+        document.getElementById('pGo').textContent = 'Check my commute';
+      } else {
+        toSel.disabled = false; toLabel.style.opacity = 1;
+        document.getElementById('pGo').textContent = 'Get result';
+      }
+      compute();
+    }
+    document.getElementById('mTrip').addEventListener('click', function(){ setMode('trip'); });
+    document.getElementById('mCommute').addEventListener('click', function(){ setMode('commute'); });
+
+    document.getElementById('pGo').addEventListener('click', compute);
+    if(typeof L !== 'undefined'){ setTimeout(compute, 500); } else { compute(); }
+  })();
+</script>
+
+<script>
+  (function(){
+    var sel = document.getElementById('cArea');
+    var msg = document.getElementById('cMsg');
+    if(!sel || !msg) return;
+    var AREAS = [
+      {n:'Union Station (DTLA)', rail:'Metro rail hub'},
+      {n:'Downtown Santa Monica', rail:'E Line'},
+      {n:'North Hollywood', rail:'B Line'},
+      {n:'Pierce College (Woodland Hills)'},
+      {n:'Harbor Gateway Transit Center'},
+      {n:'El Camino College (Torrance)'},
+      {n:'Downtown Long Beach', rail:'A Line'},
+      {n:'ARTIC (Anaheim)'},
+      {n:'Newport Beach'},
+      {n:'LAX / Metro Transit Center', rail:'C & K Lines', lax:true}
+    ];
+    AREAS.forEach(function(a,i){
+      var o = document.createElement('option');
+      o.value = String(i); o.textContent = a.n;
+      sel.appendChild(o);
+    });
+    var other = document.createElement('option');
+    other.value = 'other'; other.textContent = 'Somewhere else';
+    sel.appendChild(other);
+
+    sel.addEventListener('change', function(){
+      var v = sel.value, html;
+      if(v === 'other'){
+        html = 'Your area isn\'t a designated pickup. Use the route planner above to find your nearest hub and the cheapest way in.';
+      } else {
+        var a = AREAS[parseInt(v,10)];
+        if(a.lax){
+          html = '<b>'+a.n+'</b> is a $1.75 express-bus pickup and connects to the Metro K Line and C Line — two stops to Westchester/Veterans, then a short walk or shuttle to the gates.';
+        } else {
+          html = '<b>'+a.n+'</b> is one of the designated $1.75 express-bus pickups'+(a.rail?' ('+a.rail+')':'')+'. Walk or roll to the stop and ride nonstop to SoFi — no cross-town drive, no parking lottery. For a noon kickoff, aim to be on a bus by mid-morning; for an evening game, start earlier to clear the 405.';
+        }
+      }
+      msg.style.opacity = 0;
+      setTimeout(function(){ msg.innerHTML = html; msg.style.opacity = 1; }, 120);
+    });
+  })();
+</script>
+</body>
+</html>
